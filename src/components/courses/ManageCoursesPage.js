@@ -5,6 +5,7 @@ import { loadAuthors } from '../../redux/actions/authorActions'
 import PropTypes from 'prop-types'
 import CourseForm from './CourseForm'
 import Spinner from '../common/Spinner'
+import { toast } from 'react-toastify'
 
 const initCourseState = {
   id: null,
@@ -56,10 +57,12 @@ const ManageCoursesPage = ({
 
   const handleSave = event => {
     setSaving(prev => !prev)
+
     event.preventDefault()
     // start redirecting when save finished
     saveCourse(course).then(() => {
       history.push('/courses')
+      toast.success('Course saved!')
     })
   }
 
