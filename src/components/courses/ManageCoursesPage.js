@@ -4,6 +4,7 @@ import { loadCourses, saveCourse } from '../../redux/actions/courseActions'
 import { loadAuthors } from '../../redux/actions/authorActions'
 import PropTypes from 'prop-types'
 import CourseForm from './CourseForm'
+import Spinner from '../common/Spinner'
 
 const initCourseState = {
   id: null,
@@ -25,6 +26,8 @@ const ManageCoursesPage = ({
   const [course, setCourse] = useState({ ...courseOnPage })
   // hold errors
   const [errors, setErrors] = useState({})
+  // hold form saving status
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     if (courses.length === 0) {
@@ -52,18 +55,24 @@ const ManageCoursesPage = ({
   }
 
   const handleSave = event => {
+    setSaving(prev => !prev)
     event.preventDefault()
-    saveCourse(course)
-    history.push('/courses')
+    // start redirecting when save finished
+    saveCourse(course).then(() => {
+      history.push('/courses')
+    })
   }
 
-  return (
+  return courses.length === 0 || authors.length === 0 ? (
+    <Spinner />
+  ) : (
     <CourseForm
       course={course}
       errors={errors}
       authors={authors}
       onChange={handleChange}
       onSave={handleSave}
+      saving={saving}
     />
   )
 }

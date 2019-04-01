@@ -5,6 +5,7 @@ import { loadCourses } from '../../redux/actions/courseActions'
 import { loadAuthors } from '../../redux/actions/authorActions'
 import PropTypes from 'prop-types'
 import CourseList from './CourseList'
+import Spinner from '../common/Spinner'
 
 class CoursesPage extends React.Component {
   componentDidMount() {
@@ -24,13 +25,15 @@ class CoursesPage extends React.Component {
   }
 
   render() {
+    const { loading } = this.props
     return (
       <>
         <h2>Courses</h2>
         <Link to="/course" className="btn btn-info">
           Add Course
         </Link>
-        <CourseList courses={this.props.courses} />
+        {loading && <Spinner />}
+        {!loading && <CourseList courses={this.props.courses} />}
       </>
     )
   }
@@ -40,7 +43,8 @@ CoursesPage.propTypes = {
   authors: PropTypes.array.isRequired,
   courses: PropTypes.array.isRequired,
   loadCourses: PropTypes.func.isRequired,
-  loadAuthors: PropTypes.func.isRequired
+  loadAuthors: PropTypes.func.isRequired,
+  loading: PropTypes.bool.isRequired
 }
 
 const mapStateToProps = state => {
@@ -54,7 +58,8 @@ const mapStateToProps = state => {
               authorName: state.authors.find(a => a.id === course.authorId).name
             }
           }),
-    authors: state.authors
+    authors: state.authors,
+    loading: state.apiCallInProgress > 0
   }
 }
 
