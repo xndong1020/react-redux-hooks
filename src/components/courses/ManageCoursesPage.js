@@ -15,16 +15,16 @@ const initCourseState = {
 }
 
 const ManageCoursesPage = ({
-  courseOnPage,
   courses,
   authors,
   loadAuthors,
   loadCourses,
   saveCourse,
-  history
+  history,
+  ...props
 }) => {
   // hold  local form state
-  const [course, setCourse] = useState({ ...courseOnPage })
+  const [course, setCourse] = useState({ ...props.course })
   // hold errors
   const [errors, setErrors] = useState({})
   // hold form saving status
@@ -36,14 +36,14 @@ const ManageCoursesPage = ({
         alert('Loading courses failed' + error)
       })
     } else {
-      setCourse({ ...courseOnPage })
+      setCourse({ ...props.course })
     }
     if (authors.length === 0) {
       loadAuthors().catch(error => {
         alert('Loading authors failed' + error)
       })
     }
-  }, [courseOnPage])
+  }, [props.course])
 
   const handleChange = event => {
     const { name, value } = event.target
@@ -56,14 +56,33 @@ const ManageCoursesPage = ({
   }
 
   const handleSave = event => {
-    setSaving(prev => !prev)
-
     event.preventDefault()
+    if (!formIsValid()) return
+    setSaving(true)
+
     // start redirecting when save finished
-    saveCourse(course).then(() => {
-      history.push('/courses')
-      toast.success('Course saved!')
-    })
+    saveCourse(course)
+      .then(() => {
+        history.push('/courses')
+        toast.success('Course saved!')
+      })
+      .catch(err => {
+        setSaving(false)
+        setErrors({ onSave: err.message })
+      })
+  }
+
+  const formIsValid = () => {
+    const { title, authorId, category } = course
+    const errors = {}
+
+    if (!title) errors.title = 'Title is required.'
+    if (!authorId) errors.author = 'Author is required'
+    if (!category) errors.category = 'Category is required'
+
+    setErrors(errors)
+    // Form is valid if the errors object still has no properties
+    return Object.keys(errors).length === 0
   }
 
   return courses.length === 0 || authors.length === 0 ? (
@@ -81,7 +100,7 @@ const ManageCoursesPage = ({
 }
 
 ManageCoursesPage.propTypes = {
-  courseOnPage: PropTypes.object.isRequired,
+  course: PropTypes.object.isRequired,
   courses: PropTypes.array.isRequired,
   authors: PropTypes.array.isRequired,
   loadCourses: PropTypes.func.isRequired,
@@ -100,12 +119,12 @@ const mapStateToProps = (state, ownProps) => {
     }
   } = ownProps
   // if has slug and state.courses is loaded
-  const courseOnPage =
+  const course =
     slug && state.courses.length > 0
       ? getCourseBySlug(state.courses, slug)
       : initCourseState
   return {
-    courseOnPage,
+    course,
     courses: state.courses,
     authors: state.authors
   }
